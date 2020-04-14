@@ -1,0 +1,4 @@
+post_install() {
+  echo "for reload krunner"
+  echo "run: kquitapp5 krunner"
+}
