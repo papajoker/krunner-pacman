@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Runner pacman
+Comment=Autostart entry for a Krunner plugin
+Keywords=Runner;Krunner
+Categories=Utilities
+Exec= python ~/.local/share/kservices5/krunner_pacman.py
+Icon=system-software-install
+StartupNotify=true

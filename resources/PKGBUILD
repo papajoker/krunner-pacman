@@ -1,0 +1,19 @@
+# Maintainer: Papajoker <papajoke [at] manjaro [dot] fr>
+pkgname=krunner-pacman
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="list installed packages"
+arch=('any')
+license=('GPL')
+depends=('krunner' 'python' 'pyalpm')
+optdepends=('pamac: A Gtk3 frontend for libalpm')
+source=("https://github.com/papajoker/krunner-pacman/archive/0.1.0.tar.gz")
+sha512sums=('SKIP')
+
+package() {
+  cd "${srcdir}/${pkgname}-${pkgver}"
+  install -d ${pkgdir}/usr/{share/{kservices5,dbus-1/services},lib/qt/plugins}
+  cp resources/net.kpacman2.service ${pkgdir}/usr/share/dbus-1/services/
+  cp resources/plasma-runner-kpacman.desktop ${pkgdir}/usr/share/kservices5/
+  install -m755 plugin/krunner_pacman.py ${pkgdir}/usr/lib/qt/plugins/krunner_pacman.py
+} 
