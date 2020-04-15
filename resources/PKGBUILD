@@ -1,13 +1,13 @@
 # Maintainer: Papajoker <papajoke [at] manjaro [dot] fr>
 pkgname=krunner-pacman
-pkgver=0.1.0
+pkgver=0.1.1
 pkgrel=1
 pkgdesc="list installed packages"
 arch=('any')
 license=('GPL')
 depends=('krunner' 'python' 'pyalpm')
 optdepends=('pamac: A Gtk3 frontend for libalpm')
-source=("https://github.com/papajoker/krunner-pacman/archive/v0.1.0.tar.gz")
+source=("https://github.com/papajoker/krunner-pacman/archive/v0.1.1.tar.gz")
 sha512sums=('SKIP')
 install=.install
 
