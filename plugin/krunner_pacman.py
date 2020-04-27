@@ -52,15 +52,17 @@ class Runner(dbus.service.Object):
         pkgs = self._getpkgs(query)
 
         ret = []
-        match = 0.1
+        match = 0.01
         for pkg in pkgs:
             relevance = match
             if query == pkg.name:
                 relevance = 1
-            elif pkg.name.startswith(query):
-                relevance = 0.5
+            elif pkg.name.startswith(query) and not "-i18n" in pkg.name:
+                relevance = 0.4
             else:
                 relevance = 0.2 if query in pkg.name else match
+                if "-i18n" in pkg.name:
+                    relevance = 0.02
             ico = "system-software-install" if self.local.get_pkg(pkg.name) else ""
             data = pkg.name if self.pamac else pkg.url
             ret.append((
@@ -71,6 +73,7 @@ class Runner(dbus.service.Object):
                 relevance,
                 {"subtext": pkg.desc, "urls": pkg.url}
             ))
+        #print(ret)
         return ret
 
     @dbus.service.method(iface, in_signature='ss')
