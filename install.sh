@@ -3,6 +3,7 @@
 echo "ps -aux | grep 'krunner_pacman'"
 
 sudo cp resources/net.kpacman2.service /usr/share/dbus-1/services/
+sudo cp resources/kpacman2.service /usr/lib/systemd/user/
 sudo cp resources/plasma-runner-kpacman.desktop /usr/share/kservices5/
 sudo cp plugin/krunner_pacman.py /usr/lib/qt/plugins/
 sudo chmod +x /usr/lib/qt/plugins/krunner_pacman.py
