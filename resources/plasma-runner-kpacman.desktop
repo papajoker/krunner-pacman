@@ -1,6 +1,6 @@
 [Desktop Entry]
-Name=pacman
-Comment=alpm search package
+Name=Pamac
+Comment=pamac search package
 X-KDE-ServiceTypes=Plasma/Runner
 Type=Service
 Icon=system-software-install

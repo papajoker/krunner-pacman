@@ -1,6 +1,6 @@
 #/usr/lib/systemd/user/kpacman2.service
 [Unit]
-Description=Pacman Krunner Daemon
+Description=Pamac Krunner Daemon
 
 [Service]
 Type=dbus
