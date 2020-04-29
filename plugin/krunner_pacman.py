@@ -13,6 +13,7 @@ or a framework ? https://github.com/Shihira/krunner-bridge
 import subprocess
 from pathlib import Path
 import webbrowser
+from dataclasses import dataclass
 import dbus.service
 from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import GLib
@@ -25,54 +26,72 @@ DBusGMainLoop(set_as_default=True)
 objpath = "/kpacman"
 iface = "org.kde.krunner1"
 
+@dataclass
+class Package:
+    """minimal alpm package"""
+    name: str
+    version: str
+    desc: str
+    url: str
+    ico: str
+    relevance: float
+
+    def export(self, want_url: bool = False):
+        """format for krunner"""
+        return (
+            self.url if want_url else self.name,
+            f"{self.name}\t{self.version}",
+            self.ico,
+            32,    # type : https://api.kde.org/frameworks/krunner/html/runnercontext_8h_source.html
+            self.relevance,
+            {"subtext": self.desc}
+        )
+
 class Runner(dbus.service.Object):
     def __init__(self):
+        """set dbus and load alpm"""
         dbus.service.Object.__init__(self, dbus.service.BusName("net.kpacman2", dbus.SessionBus()), objpath)
-        self.alpm = None
-        self.local = None
+        self.alpm = config.init_with_config("/etc/pacman.conf")
+        self.local = self.alpm.get_localdb()
         self.pamac = Path('/usr/bin/pamac-manager').is_file()
 
     def _getpkgs(self, query: str):
-        pkgs = []
+        """find packages by name and description"""
         for repo in self.alpm.get_syncdbs():
-            pkgs = pkgs + repo.search(query)
-        return pkgs
+            for pkg in repo.search(query):
+                yield Package(
+                    pkg.name,
+                    pkg.version,
+                    pkg.desc,
+                    pkg.url,
+                    "system-software-install" if self.local.get_pkg(pkg.name) is not None else "",
+                    self._setrelevance(pkg, query)
+                )
+
+    def _setrelevance(self, pkg: Package, query: str)->float:
+        """display only top 10 by relevance"""
+        mini = 0.01
+        relevance = mini
+        if query == pkg.name:
+            relevance = 1
+        elif pkg.name.startswith(query) and not "-i18n" in pkg.name:
+            relevance = 0.4
+        else:
+            relevance = 0.2 if query in pkg.name else mini
+            if "-i18n" in pkg.name:
+                relevance = mini
+        return relevance
 
     @dbus.service.method(iface, in_signature='s', out_signature='a(sssida{sv})')
     def Match(self, query: str):
-        """This method is used to get the matches and it returns a list"""
+        """get the matches and returns a packages list"""
         query = query.strip().lower()
         if len(query) < 3:
             return []
 
-        if not self.alpm:
-            self.alpm = config.init_with_config("/etc/pacman.conf")
-            self.local = self.alpm.get_localdb()
-
-        pkgs = self._getpkgs(query)
-
         ret = []
-        match = 0.01
-        for pkg in pkgs:
-            relevance = match
-            if query == pkg.name:
-                relevance = 1
-            elif pkg.name.startswith(query) and not "-i18n" in pkg.name:
-                relevance = 0.4
-            else:
-                relevance = 0.2 if query in pkg.name else match
-                if "-i18n" in pkg.name:
-                    relevance = 0.02
-            ico = "system-software-install" if self.local.get_pkg(pkg.name) else ""
-            data = pkg.name if self.pamac else pkg.url
-            ret.append((
-                data,
-                f"{pkg.name}\t{pkg.version}",
-                ico,
-                32,    # type : https://api.kde.org/frameworks/krunner/html/runnercontext_8h_source.html
-                relevance,
-                {"subtext": pkg.desc, "urls": pkg.url}
-            ))
+        for pkg in self._getpkgs(query):
+            ret.append(pkg.export(not self.pamac))
         #print(ret)
         return ret
 

@@ -11,6 +11,7 @@ sudo chmod +x /usr/lib/qt/plugins/krunner_pacman.py
 if [[ "$1" == "-l" ]]; then
     sudo rm /usr/share/dbus-1/services/net.kpacman2.service
     sudo rm /usr/lib/qt/plugins/krunner_pacman.py
+    sudo rm /usr/lib/systemd/user/kpacman2.service
     echo "python plugin/krunner_pacman.py # load dbus server in other terminal"
     #python plugin/krunner_pacman.py &
 fi
@@ -18,6 +19,7 @@ fi
 if [[ "$1" == "-r" ]]; then
     sudo rm /usr/share/dbus-1/services/net.kpacman2.service
     sudo rm /usr/share/kservices5/plasma-runner-kpacman.desktop
+    sudo rm /usr/lib/systemd/user/kpacman2.service
     sudo rm /usr/lib/qt/plugins/krunner_pacman.py
     ps -aux | grep 'krunner_pacman'
 fi
