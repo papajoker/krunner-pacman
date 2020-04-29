@@ -5,7 +5,6 @@ https://cgit.kde.org/krunner.git/plain/src/data/org.kde.krunner1.xml
 https://api.kde.org/frameworks/krunner/html/runnercontext_8cpp_source.html#l00374
 https://techbase.kde.org/Development/Tutorials/Plasma4/AbstractRunner
 
-or a framework ? https://github.com/Shihira/krunner-bridge
 """
 
 # qdbus org.kde.krunner /App org.kde.krunner.App.querySingleRunner kpacman pacman
@@ -14,6 +13,8 @@ import subprocess
 from pathlib import Path
 import webbrowser
 from dataclasses import dataclass
+from pathlib import Path
+import configparser
 import dbus.service
 from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import GLib
@@ -54,19 +55,37 @@ class Runner(dbus.service.Object):
         self.alpm = config.init_with_config("/etc/pacman.conf")
         self.local = self.alpm.get_localdb()
         self.pamac = Path('/usr/bin/pamac-manager').is_file()
+        self.desc = True       # search in descriptions
+        inirc = configparser.ConfigParser()
+        inirc.read(f"{Path.home()}/.config/krunnerrc")
+        try:
+            self.desc = False if inirc['kpacman']['desc'].lower() == "false" else True
+        except KeyError:
+            pass
+
 
     def _getpkgs(self, query: str):
         """find packages by name and description"""
+
+        def setpkg(pkg):
+            return Package(
+                pkg.name,
+                pkg.version,
+                pkg.desc,
+                pkg.url,
+                "system-software-install" if self.local.get_pkg(pkg.name) is not None else "",
+                self._setrelevance(pkg, query)
+            )
+
         for repo in self.alpm.get_syncdbs():
-            for pkg in repo.search(query):
-                yield Package(
-                    pkg.name,
-                    pkg.version,
-                    pkg.desc,
-                    pkg.url,
-                    "system-software-install" if self.local.get_pkg(pkg.name) is not None else "",
-                    self._setrelevance(pkg, query)
-                )
+            if self.desc:
+                for pkg in repo.search(query):
+                    yield setpkg(pkg)
+            else:
+                for pkg in repo.search(""):
+                    if not query in pkg.name:
+                        continue
+                    yield setpkg(pkg)
 
     def _setrelevance(self, pkg: Package, query: str)->float:
         """display only top 10 by relevance"""
