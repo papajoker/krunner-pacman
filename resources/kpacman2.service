@@ -5,4 +5,5 @@ Description=Pacman Krunner Daemon
 [Service]
 Type=dbus
 BusName=net.kpacman2.service
-ExecStart=/usr/lib/qt/plugins/krunner_pacman.py 
+ExecStart=/usr/lib/qt/plugins/krunner_pacman.py
+

@@ -13,7 +13,6 @@ import subprocess
 from pathlib import Path
 import webbrowser
 from dataclasses import dataclass
-from pathlib import Path
 import configparser
 import dbus.service
 from dbus.mainloop.glib import DBusGMainLoop
@@ -118,7 +117,9 @@ class Runner(dbus.service.Object):
     def Run(self, data: str, _action_id: str):
         """click on item"""
         if self.pamac:
-            subprocess.Popen(['pamac-manager', f"--details={data}"])
+            pid = subprocess.Popen(
+                ["pamac-manager", f"--details={data}"]
+            ).pid
         else:
             webbrowser.open_new_tab(data)
         #print("run...", data, _action_id)
